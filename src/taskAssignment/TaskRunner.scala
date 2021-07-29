@@ -1,13 +1,14 @@
 package taskAssignment
 
 object TaskRunner {
-  val taskList: List[String] = List("materials preparation", "presentation", "homework review", "Q&A session support")
-  var devList: List[Developer] = List(new TaskDeveloper("dev1"), new TaskDeveloper("dev2"), new TaskDeveloper("dev3"), new TaskDeveloper("dev4"))
+  val taskList: List[Task] = List(PreparationTask, PresentationTask, ReviewTask, SupportTask)
+  val devList: List[Developer] = List("dev1", "dev2", "dev3", "dev4").map(TaskDeveloper.apply)
 
   def main(args: Array[String]) {
 
     val manager: Manager = new TaskManager
     for (i <- 1 to 14) {
+      println()
       println(s"Current lecture is $i")
       println(manager.generateCommand)
       assignTasks()
@@ -18,9 +19,8 @@ object TaskRunner {
 
   def assignTasks(): Unit = {
     val shuffledDevList = scala.util.Random.shuffle(devList)
-    for (j <- 0 until taskList.length) {
-      shuffledDevList(j).currentTask = taskList(j)
-      shuffledDevList(j).startOfWork()
+    for (j <- taskList.indices) {
+      println(shuffledDevList(j).startOfWork(taskList(j).taskName))
     }
   }
 

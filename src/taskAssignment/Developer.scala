@@ -1,15 +1,12 @@
 package taskAssignment
 
 trait Developer {
-  var currentTask: String
-  def startOfWork()
+  def startOfWork(taskName: String): String
 }
 
-class TaskDeveloper(val name: String) extends Developer {
+case class TaskDeveloper(name: String) extends Developer {
 
-  override var currentTask: String = _
-
-  override def startOfWork(): Unit ={
-    println(s"taskAssignment.Developer $name started task $currentTask.")
+  override def startOfWork(taskName: String): String ={
+    s"taskAssignment.Developer $name started task $taskName."
   }
 }

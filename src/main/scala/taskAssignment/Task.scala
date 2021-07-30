@@ -1,4 +1,4 @@
-package main.scala.taskAssignment
+package taskAssignment
 
 trait Task {
   val taskName: String

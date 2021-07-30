@@ -1,4 +1,4 @@
-package main.scala.taskAssignment
+package taskAssignment
 
 trait Developer {
   def startOfWork(taskName: String): String

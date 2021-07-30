@@ -1,4 +1,4 @@
-package taskAssignment
+package main.scala.taskAssignment
 
 object TaskRunner {
   val taskList: List[Task] = List(PreparationTask, PresentationTask, ReviewTask, SupportTask)

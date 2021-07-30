@@ -1,4 +1,4 @@
-package taskAssignment
+package main.scala.taskAssignment
 
 trait Manager {
   def generateCommand: String

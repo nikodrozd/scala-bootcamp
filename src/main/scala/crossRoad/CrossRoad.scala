@@ -7,27 +7,23 @@ object CrossRoad {
     val teen: Person = Teenager("Tommy", 15)
 
     println("Adult for enum:")
-    adult.crossRoadEnum(TrafficLightEnumerator.Green)
-    adult.crossRoadEnum(TrafficLightEnumerator.Yellow)
-    adult.crossRoadEnum(TrafficLightEnumerator.Red)
+    TrafficLightEnumerator.values.foreach(x => adult.crossRoadEnum(x))
     println()
 
     println("Adult for trait:")
-    adult.crossRoadTrait(Green)
-    adult.crossRoadTrait(Yellow)
     adult.crossRoadTrait(Red)
+    adult.crossRoadTrait(Yellow)
+    adult.crossRoadTrait(Green)
     println()
 
     println("Teen for enum:")
-    teen.crossRoadEnum(TrafficLightEnumerator.Green)
-    teen.crossRoadEnum(TrafficLightEnumerator.Yellow)
-    teen.crossRoadEnum(TrafficLightEnumerator.Red)
+    TrafficLightEnumerator.values.foreach(x => teen.crossRoadEnum(x))
     println()
 
     println("Teen for trait:")
-    teen.crossRoadTrait(Green)
-    teen.crossRoadTrait(Yellow)
     teen.crossRoadTrait(Red)
+    teen.crossRoadTrait(Yellow)
+    teen.crossRoadTrait(Green)
     println()
 
   }

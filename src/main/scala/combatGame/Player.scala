@@ -7,19 +7,18 @@ class Player(val name: String, var hp: Int = 100, var weaponOpt: Option[Weapon] 
     val damage: Option[Int] = this.weaponOpt.map(_.damage)
     val defence: Option[Int] = opponent.shieldOpt.map(_.defence)
 
-    durabilityCalculation(this, opponent)
+    this.weaponOpt = durabilityCalculation(this.weaponOpt)
+    opponent.shieldOpt = durabilityCalculation(opponent.shieldOpt)
+
     hpChangeCalculation(damage.getOrElse(0) - defence.getOrElse(0), opponent)
   }
 
-  private def durabilityCalculation(attacker: Player, defender: Player) {
-    for {weapon <- attacker.weaponOpt} yield  {
-      weapon.durability -= 1
-      if (weapon.durability <= 0) attacker.weaponOpt = None
+  private def durabilityCalculation[A <: Item](itemOpt: Option[A]): Option[A] = {
+    for {item <- itemOpt} yield  {
+      item.durability -= 1
+      if (item.durability <= 0) return None
     }
-    for {shield <- defender.shieldOpt} yield {
-      shield.durability -= 1
-      if (shield.durability <= 0) defender.shieldOpt = None
-    }
+    itemOpt
   }
 
   private def hpChangeCalculation (hitPower: Int, opponent: Player): Unit = {

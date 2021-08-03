@@ -1,8 +1,7 @@
 package combatGame
 
-trait Weapon {
+trait Weapon extends Item {
   val damage: Int
-  var durability: Int
 }
 
 case class Sword() extends Weapon {

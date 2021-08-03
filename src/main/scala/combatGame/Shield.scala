@@ -1,8 +1,7 @@
 package combatGame
 
-trait Shield {
+trait Shield extends Item {
   val defence: Int
-  var durability: Int
 }
 
 case class BucklerShield() extends Shield {

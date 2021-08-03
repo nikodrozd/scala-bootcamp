@@ -1,5 +1,6 @@
 package combatGame
 
+import org.mockito.Mockito.{spy, times, verify}
 import org.scalatest.GivenWhenThen
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -46,7 +47,7 @@ class CombatGameSpec extends AnyFlatSpec with Matchers with GivenWhenThen {
     defender.shieldOpt should equal(None)
   }
 
-  it should "have broken weapon after it's durability reach 0 points" in {
+  it should "have broken weapon after it's durability reaches 0 points" in {
     Given("two players: attacker with Dagger and defender with HeavyShield")
     val attacker: Player = new Player("Attacker", weaponOpt = Some(Dagger()))
     val defender: Player = new Player("Defender", shieldOpt = Some(HeavyShield()))
@@ -58,6 +59,18 @@ class CombatGameSpec extends AnyFlatSpec with Matchers with GivenWhenThen {
 
     Then("attacker's weapon should be broken")
     attacker.weaponOpt should equal(None)
+  }
+
+  it should "generate winner roar if opponent's hp reaches 0" in {
+    Given("two players: attacker with Sword and defender with 10 hp and without shield")
+    val attacker: Player = spy(new Player("Attacker", weaponOpt = Some(Sword())))
+    val defender: Player = new Player("Defender", hp = 10)
+
+    When("attacker attacks defender 1 time using Sword")
+    attacker.attack(defender)
+
+    Then("defender's hp decreased to 0 and attacker generates winner roar 1 time")
+    verify(attacker, times(1)).winnerRoar(defender.name)
   }
 
 }

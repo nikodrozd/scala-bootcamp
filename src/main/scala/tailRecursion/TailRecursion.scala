@@ -3,6 +3,9 @@ package tailRecursion
 import java.util.Scanner
 
 object TailRecursion {
+
+  val step: Int = 4
+
   def recursionIntToString(n: Int): String ={
     import scala.annotation.tailrec
     @tailrec // will fail compilation if method can’t be optimized
@@ -10,7 +13,7 @@ object TailRecursion {
       if (tempN <= 0) {
         resultString(result, tempN)
       } else {
-        recursionIntToStringInternal(result :+ tempN, tempN - 4)
+        recursionIntToStringInternal(result :+ tempN, tempN - step)
       }
     }
     recursionIntToStringInternal(Array[Int](), n)

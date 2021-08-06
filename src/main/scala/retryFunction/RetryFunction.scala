@@ -13,8 +13,7 @@ object RetryFunction {
       res
     } else {
       Thread.sleep(retries.head)
-      println(s"Check failed. Waiting for ${retries.head} millis and retry")
-      retry(block: () => T, accept: T => Boolean, retries.tail: List[Long])
+      retry(block, accept, retries.tail)
     }
 
   }

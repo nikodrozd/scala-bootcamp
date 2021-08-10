@@ -5,28 +5,22 @@ object Extractor {
   val inUaStr: String = "in.ua"
   val gmailComStr: String = "gmail.com"
 
-  def filterNotInUa(domains: List[String]): List[String] = {
+  def filterNotDomainsWithParticularHead(domains: List[String], head: String = inUaStr): List[String] = {
     domains.filterNot {
-      case Domain(f, s, _*) if s"$s.$f" == inUaStr => true
+      case Domain(f, s, _*) if s"$s.$f" == head => true
       case _ => false
     }
   }
 
-  def filterGmail(emails: Array[String]): Array[Unit] = {
+  def filterEmailsWithParticularDomain(emails: Array[String], inputDomainStr: String = gmailComStr): Array[Unit] = {
     for (email <- emails) yield {
       email match {
-        case Email(_, domain) if domain == gmailComStr => println(email)
+        case Email(_, domain) if domain == inputDomainStr => println(email)
         case _ =>
       }
     }
   }
 
-//  def filterGmail(emails: Array[String]) = {
-//    for {
-//      emailStr <- emails
-//      email <- Email.unapply(emailStr) if email._2 == gmailComStr
-//    } yield (println(emailStr))
-//  }
 }
 
 object Email {

@@ -5,14 +5,13 @@ object Types {
     sealed trait Nat {
       type Add[N <: Nat] <: Nat
       type Multi[N <: Nat] <: Nat
-      type Power[N <: Nat] <: Nat
+      type Power[N2 <: Nat] = N2#ReversePower[this.type]
       type ReversePower[N <: Nat] <: Nat
     }
 
     trait _0 extends Nat {
       type Add[N <: Nat] = N
       type Multi[N <: Nat] = _0
-      type Power[N <: Nat] = _0
       type ReversePower[N <: Nat] = _1
     }
 
@@ -20,7 +19,6 @@ object Types {
       type Add[N2 <: Nat] = Inc[N#Add[N2]]
       type Multi[N2 <: Nat] = N2#Add[N#Multi[N2]]
       type ReversePower[N2 <: Nat] = N2#Multi[N#ReversePower[N2]]
-      type Power[N2 <: Nat] = N2#ReversePower[Inc[N]]
     }
 
     type _1 = Inc[_0]

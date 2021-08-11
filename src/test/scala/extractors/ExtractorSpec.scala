@@ -94,23 +94,23 @@ class ExtractorSpec extends AnyFlatSpec with Matchers with GivenWhenThen {
     filteredList.size should equal(0)
   }
 
-  "Extractor.filterEmailsWithParticularDomain function" should """take array of emails to input and print only emails with "gmail.com" domain (by default)""" in {
+  "Extractor.printEmailsFilteredByDomain function" should """take array of emails to input and print only emails with "gmail.com" domain (by default)""" in {
     Given("""array of emails "test@gmail.com", "test@in.ua", "holy-scala@gmail.com", "scala@metagmail.com" """)
     val emailArray: Array[String] = Array("test@gmail.com", "test@in.ua", "holy-scala@gmail.com", "scala@metagmail.com")
     val printCheck = new ByteArrayOutputStream()
 
-    When("tested function is called for given array")
+    When("tested function is called for given array and console output is saved as array of strings")
     Console.withOut(printCheck) {
-      Extractor.filterEmailsWithParticularDomain(emailArray)
+      Extractor.printEmailsFilteredByDomain(emailArray)
     }
-    val consoleResult: String = printCheck.toString
+    val consoleResult: Array[String] = printCheck.toString.split("\\r\\n")
 
     Then("""it should print emails with "gmail.com" domain""")
-    consoleResult.contains("test@gmail.com") should equal(true)
-    consoleResult.contains("holy-scala@gmail.com") should equal(true)
+    consoleResult should contain("test@gmail.com")
+    consoleResult should contain("holy-scala@gmail.com")
     And("""should not print emails without "gmail.com" domain""")
-    consoleResult.contains("test@in.ua") should equal(false)
-    consoleResult.contains("scala@metagmail.com") should equal(false)
+    consoleResult shouldNot contain("test@in.ua")
+    consoleResult shouldNot contain("scala@metagmail.com")
   }
 
 }

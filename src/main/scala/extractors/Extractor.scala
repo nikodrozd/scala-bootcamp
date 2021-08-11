@@ -12,13 +12,11 @@ object Extractor {
     }
   }
 
-  def filterEmailsWithParticularDomain(emails: Array[String], inputDomainStr: String = gmailComStr): Array[Unit] = {
-    for (email <- emails) yield {
-      email match {
-        case Email(_, domain) if domain == inputDomainStr => println(email)
-        case _ =>
-      }
-    }
+  def printEmailsFilteredByDomain(emails: Array[String], inputDomainStr: String = gmailComStr): Unit = {
+    for {
+      emailStr <- emails
+      Email(_, domain) = emailStr if domain == inputDomainStr
+    } yield println(emailStr)
   }
 
 }

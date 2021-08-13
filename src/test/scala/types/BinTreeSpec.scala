@@ -4,148 +4,175 @@ import org.scalatest.GivenWhenThen
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class BinTreeSpec extends AnyFlatSpec with Matchers with GivenWhenThen{
+class BinTreeSpec extends AnyFlatSpec with Matchers with GivenWhenThen {
 
-  "BinTree" should "be able to be created with root node" in {
-    Given("Option(Node) to be added to BinTree")
+  "BinTreeNode" should "be able to be created as single node" in {
+    Given("key and value parameters for BinTreeNode")
     val key: Int = 1
-    val str: String = "test"
-    val node: Option[Node[Int, String]] = Some(Node(key, str))
+    val value: String = "test"
 
-    When("new BinTree is created with given node")
-    val binTree: BinTree[Int, String] = new BinTree[Int, String](node)
+    When("new BinTreeNode is created with given parameters")
+    val binTree: BinTreeNode[Int, String] = new BinTreeNode[Int, String](key, value)
 
-    Then("value of this node should be available by key using get function")
-    binTree.get(key).getOrElse("nothing") should equal(str)
+    Then("given value should be available by key using get function")
+    binTree.get(key).getOrElse("nothing") should equal(value)
   }
 
-  it should "be immutable, so adding of new element should not change original BinTree" in {
-    Given("key, value and empty BinTree")
-    val key: Int = 5
-    val value: String = "test"
-    val binTree: BinTree[Int, String] = new BinTree[Int, String]()
+  it should "be immutable, so adding of new element should not change original BinTreeNode" in {
+    Given("BinTreeNode with one node")
+    val key: Array[Int] = Array(5, 6)
+    val value: Array[String] = Array("test5", "test6")
+    val binTree: BinTreeNode[Int, String] = new BinTreeNode[Int, String](key(0), value(0))
+
+    When("new node is added with given key and value")
+    binTree.add(key(1), value(1))
+
+    Then("original BinTreeNode should not be changed and should return None by given key")
+    binTree.get(key(1)) should equal(None)
+  }
+
+  "BinTreeNode.add" should "take provided pair of (key, node) and add it to BinTree as new node" in {
+    Given("key, value and BinTreeNode with one node")
+    val key: Array[Int] = Array(5, 6)
+    val value: Array[String] = Array("test5", "test6")
+    val binTree: BinTreeNode[Int, String] = new BinTreeNode[Int, String](key(0), value(0))
 
     When("new node is added to the BinTree with given key and value")
-    binTree.add(key, value)
+    val newBinTree = binTree.add(key(1), value(1))
 
-    Then("original BinTree should not be changed and should return None by given key")
-    binTree.get(key) should equal(None)
+    Then("both nodes should be available by given keys")
+    newBinTree match {
+      case Right(node) =>
+        node.get(key(0)).getOrElse("nothing") should equal(value(0))
+        node.get(key(1)).getOrElse("nothing2") should equal(value(1))
+      case Left(ex) => fail("Test has been failed due to unexpected error: " + ex)
+    }
   }
 
-  "BinTree.add" should "take provided pair of (key, node) and add it to BinTree as new node" in {
-    Given("key, value and empty BinTree")
-    val key: Int = 5
-    val value: String = "test"
-    val binTree: BinTree[Int, String] = new BinTree[Int, String]()
-
-    When("new node is added to the BinTree with given key and value")
-    val newBinTree = binTree.add(key, value)
-
-    Then("node with given value should be available by given key")
-    newBinTree.get(key).getOrElse("nothing") should equal(value)
-  }
-
-  it should "throw IllegalArgumentException exception after trying to add node with duplicate key" in {
+  it should "return IllegalArgumentException exception after trying to add node with duplicate key" in {
     Given("key, value and BinTree with one node")
     val key: Int = 5
     val value: String = "test"
     val newValue: String = "another test"
-    val binTree: BinTree[Int, String] = new BinTree[Int, String]().add(key, value)
+    val binTree: BinTreeNode[Int, String] = new BinTreeNode[Int, String](key, value)
 
     When("node with duplicate key is trying to be added to BinTree")
-    val thrown = the [IllegalArgumentException] thrownBy binTree.add(key, newValue)
+    val newBinTree = binTree.add(key, newValue)
 
     Then("""message of thrown exception should be "Element with key 5 is already exist" """)
-    thrown.getMessage should equal(s"Element with key $key is already exist")
+    newBinTree match {
+      case Right(_) => fail("Test has been failed cause error with expected message was not thrown")
+      case Left(ex) => ex.getMessage should equal(s"Element with key $key is already exist")
+    }
   }
 
-  "BinTree.update" should "take provided pair of (key, node) and update value of node with this key" in {
-    Given("key, value and BinTree with one node")
-    val key: Int = 5
-    val value: String = "test"
+  "BinTreeNode.update" should "take provided pair of (key, value) and update value of node with this key" in {
+    Given("key, value and BinTreeNode with two nodes")
+    val key: Array[Int] = Array(5, 7)
+    val value: Array[String] = Array("test5", "test7")
     val newValue: String = "another test"
-    val binTree: BinTree[Int, String] = new BinTree[Int, String]().add(key, value)
+    val binTree: BinTreeNode[Int, String] = new BinTreeNode[Int, String](key(0), value(0))
+    val binTree2 = binTree.add(key(1), value(1))
 
     When("update function is called with given parameters")
-    val newBinTree = binTree.update(key, newValue)
+    val updatedBinTree: Either[Throwable, BinTreeNode[Int, String]] = binTree2.flatMap(_.update(key(1), newValue))
 
-    Then("value of requested node should be updated")
-    newBinTree.get(key).getOrElse("nothing") should equal(newValue)
+    Then("value of requested node should be updated and another one should remains the same")
+    updatedBinTree match {
+      case Right(node) =>
+        node.get(key(0)).getOrElse("nothing") should equal(value(0))
+        node.get(key(1)).getOrElse("nothing2") should equal(newValue)
+      case Left(ex) => fail("Test has been failed due to unexpected error: " + ex)
+    }
   }
 
-  it should "throw NoSuchElementException exception after trying to update value for non-existing key" in {
+  it should "return NoSuchElementException exception after trying to update value for non-existing key" in {
     Given("key, value and BinTree with one node")
     val key: Int = 5
     val value: String = "test"
     val wrongKey: Int = 6
     val newValue: String = "another test"
-    val binTree: BinTree[Int, String] = new BinTree[Int, String]().add(key, value)
+    val binTree: BinTreeNode[Int, String] = new BinTreeNode[Int, String](key, value)
 
     When("node with non-existing key is trying to be updated in BinTree")
-    val thrown = the [NoSuchElementException] thrownBy binTree.update(wrongKey, newValue)
+    val newBinTree: Either[Throwable, BinTreeNode[Int, String]] = binTree.update(wrongKey, newValue)
 
     Then("""message of thrown exception should be "Element with key 6 is not found" """)
-    thrown.getMessage should equal(s"Element with key $wrongKey is not found")
+    newBinTree match {
+      case Right(_) => fail("Test has been failed cause error with expected message was not thrown")
+      case Left(ex) => ex.getMessage should equal(s"Element with key $wrongKey is not found")
+    }
   }
 
-  "BinTree.remove" should "remove node with provided key from BinTree" in {
+  "BinTreeNode.remove" should "remove node with provided key from BinTree" in {
     Given("key, value and BinTree with one node")
-    val key: Int = 5
-    val value: String = "test"
-    val binTree: BinTree[Int, String] = new BinTree[Int, String]().add(key, value)
+    val key: Array[Int] = Array(5, 7)
+    val value: Array[String] = Array("test5", "test7")
+    val binTree: BinTreeNode[Int, String] = new BinTreeNode[Int, String](key(0), value(0))
+    val binTree2: Either[Throwable, BinTreeNode[Int, String]] = binTree.add(key(1), value(1))
 
-    When("remove function is called with given key")
-    val newBinTree = binTree.remove(key)
+    When("remove function is called for non-root node")
+    val newBinTree: Either[Throwable, Option[BinTreeNode[Int, String]]] = binTree2.flatMap(_.remove(key(1)))
 
-    Then("node with such key should be removed and BinTree.get should return None for this key")
-    newBinTree.get(key) should equal(None)
+    Then("root node should be still present in BinTree")
+    And("removed node should be replaced with None value")
+    newBinTree match {
+      case Right(Some(node)) =>
+        node.get(key(0)).getOrElse("nothing") should equal(value(0))
+        node.get(key(1)) should equal(None)
+      case Right(None) => fail("Test has been failed due to removed root node element")
+      case Left(ex) => fail("Test has been failed due to unexpected error: " + ex)
+    }
   }
 
-  it should "throw NoSuchElementException exception after trying to remove node for non-existing key" in {
-    Given("key, value and BinTree with one node")
-    val key: Int = 5
-    val value: String = "test"
-    val wrongKey: Int = 6
-    val binTree: BinTree[Int, String] = new BinTree[Int, String]().add(key, value)
+    it should "return NoSuchElementException exception after trying to remove node for non-existing key" in {
+      Given("key, value and BinTree with one node")
+      val key: Int = 5
+      val value: String = "test"
+      val wrongKey: Int = 6
+      val binTree: BinTreeNode[Int, String] = new BinTreeNode[Int, String](key, value)
 
-    When("node with non-existing key is trying to be removed from BinTree")
-    val thrown = the [NoSuchElementException] thrownBy binTree.remove(wrongKey)
+      When("node with non-existing key is trying to be removed from BinTree")
+      val newBinTree: Either[Throwable, Option[BinTreeNode[Int, String]]] = binTree.remove(wrongKey)
 
-    Then("""message of thrown exception should be "Element with key 6 is not found" """)
-    thrown.getMessage should equal(s"Element with key $wrongKey is not found")
-  }
+      Then("""message of thrown exception should be "Element with key 6 is not found" """)
+      newBinTree match {
+        case Right(_) => fail("Test has been failed cause error with expected message was not thrown")
+        case Left(ex) => ex.getMessage should equal(s"Element with key $wrongKey is not found")
+      }
+    }
 
-  "BinTree.getWithDefaultValue" should "return provided default value if nothing was found by provided key" in {
-    Given("key, value and BinTree with one node")
-    val key: Int = 5
-    val value: String = "test"
-    val defaultValue = "no elements found"
-    val wrongKey: Int = 6
-    val binTree: BinTree[Int, String] = new BinTree[Int, String]().add(key, value)
+    "BinTree.getWithDefaultValue" should "return provided default value if nothing was found by provided key" in {
+      Given("key, value and BinTree with one node")
+      val key: Int = 5
+      val value: String = "test"
+      val defaultValue = "no elements found"
+      val wrongKey: Int = 6
+      val binTree: BinTreeNode[Int, String] = new BinTreeNode[Int, String](key, value)
 
-    When("getWithDefaultValue function is called with default parameter for non-existing key")
-    val result = binTree.getWithDefaultValue(wrongKey, defaultValue)
+      When("getWithDefaultValue function is called with default parameter for non-existing key")
+      val result = binTree.getWithDefaultValue(wrongKey, defaultValue)
 
-    Then("result of function should contain default value in Option")
-    result.getOrElse("nothing") should equal(defaultValue)
-  }
+      Then("result of function should contain default value in Option")
+      result should equal(defaultValue)
+    }
 
-  "BinTree.isExist" should "return true is node with given key exists in BinTree and false if not" in {
-    Given("key, value and BinTree with one node")
-    val key: Int = 5
-    val value: String = "test"
-    val wrongKey: Int = 6
-    val binTree: BinTree[Int, String] = new BinTree[Int, String]().add(key, value)
+    "BinTree.isExist" should "return true is node with given key exists in BinTree and false if not" in {
+      Given("key, value and BinTree with one node")
+      val key: Int = 5
+      val value: String = "test"
+      val wrongKey: Int = 6
+      val binTree: BinTreeNode[Int, String] = new BinTreeNode[Int, String](key, value)
 
-    When("isExist function is called with correct key")
-    val result = binTree.isExist(key)
-    And("isExist function is called with wrong key")
-    val falseResult = binTree.isExist(wrongKey)
+      When("isExist function is called with correct key")
+      val result = binTree.isExist(key)
+      And("isExist function is called with wrong key")
+      val falseResult = binTree.isExist(wrongKey)
 
-    Then("result for correct key should be true")
-    result should equal(true)
-    And("result for wrong key should be false")
-    falseResult should equal(false)
-  }
+      Then("result for correct key should be true")
+      result should equal(true)
+      And("result for wrong key should be false")
+      falseResult should equal(false)
+    }
 
 }

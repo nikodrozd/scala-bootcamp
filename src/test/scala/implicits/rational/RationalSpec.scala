@@ -1,10 +1,9 @@
-package implicits
+package implicits.rational
 
-import implicits.rational.Rational
+import implicits.rational.RationalConverter._
 import org.scalatest.GivenWhenThen
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import implicits.rational.RationalConverter._
 
 class RationalSpec extends AnyFlatSpec with Matchers with GivenWhenThen{
 

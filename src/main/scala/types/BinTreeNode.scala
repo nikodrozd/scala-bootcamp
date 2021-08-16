@@ -8,7 +8,10 @@ case class BinTreeNode[K : Ordering, +V](key: K, value: V, nodeLeft: Option[BinT
   def getWithDefaultValue[A >: V](key: K, value: => A): A = this.get(key).getOrElse(value)
   def add[A >: V](key: K, value: A): Either[Throwable, BinTreeNode[K, A]] = addNode(key, value, rootNode = Some(this))
   def update[A >: V](key: K, value: A): Either[Throwable, BinTreeNode[K, A]] = updateNode(key, value, rootNode = Some(this))
-  def remove[A >: V](key: K): Either[Throwable, Option[BinTreeNode[K, A]]] = removeNode(key, Some(this))//???
+  def remove[A >: V](key: K): Either[Throwable, BinTreeNode[K, A]] = {
+    if (key == this.key) Left(new IllegalArgumentException(s"Impossible to remove root node with key $key"))
+    else removeNode(key, Some(this))
+  }
   def isExist(key: K): Boolean = findNode(key, Some(this)).isDefined
 
   protected def findNode[A >: V](key: K, rootNode: Option[BinTreeNode[K, A]]): Option[BinTreeNode[K, A]] = rootNode match {
@@ -41,17 +44,12 @@ case class BinTreeNode[K : Ordering, +V](key: K, value: V, nodeLeft: Option[BinT
     }
   }
 
-  protected def removeNode[A >: V](key: K, rootNode: Option[BinTreeNode[K, A]]): Either[Throwable, Option[BinTreeNode[K, A]]] = rootNode match {
-    case Some(node) if node.key == key => Right(None)
-    case Some(node) if node.key < key => removeNode(key, node.nodeRight) match {
-      case Right(newNodeOpt) => Right(Some(BinTreeNode(node.key, node.value, node.nodeLeft, newNodeOpt)))
-      case Left(ex) => Left(ex)
-    }
-    case Some(node) if node.key > key => removeNode(key, node.nodeRight) match {
-      case Right(newNodeOpt) => Right(Some(BinTreeNode(node.key, node.value, newNodeOpt, node.nodeRight)))
-      case Left(ex) => Left(ex)
-    }
-    case None => Left(new NoSuchElementException(s"Element with key $key is not found"))
+  protected def removeNode[A >: V](key: K, rootNode: Option[BinTreeNode[K, A]]): Either[Throwable, BinTreeNode[K, A]] = rootNode match {
+    case Some(node) if node.nodeRight.exists(_.key == key) => Right(BinTreeNode(node.key, node.value, node.nodeLeft, None))
+    case Some(node) if node.nodeLeft.exists(_.key == key) => Right(BinTreeNode(node.key, node.value, None, node.nodeRight))
+    case Some(node) if node.nodeRight.isDefined & node.key < key => newNode(node, removeNode(key, node.nodeRight), isRightNode = true)
+    case Some(node) if node.nodeLeft.isDefined & node.key > key => newNode(node, removeNode(key, node.nodeLeft), isRightNode = false)
+    case _ => Left(new NoSuchElementException(s"Element with key $key is not found"))
   }
 
 }

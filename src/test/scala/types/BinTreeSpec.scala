@@ -106,21 +106,22 @@ class BinTreeSpec extends AnyFlatSpec with Matchers with GivenWhenThen {
 
   "BinTreeNode.remove" should "remove node with provided key from BinTree" in {
     Given("key, value and BinTree with one node")
-    val key: Array[Int] = Array(5, 7)
-    val value: Array[String] = Array("test5", "test7")
+    val key: Array[Int] = Array(5, 7, 6)
+    val value: Array[String] = Array("test5", "test7", "test6")
     val binTree: BinTreeNode[Int, String] = new BinTreeNode[Int, String](key(0), value(0))
     val binTree2: Either[Throwable, BinTreeNode[Int, String]] = binTree.add(key(1), value(1))
+    val binTree3 = binTree2.flatMap(_.add(key(2), value(2)))
 
     When("remove function is called for non-root node")
-    val newBinTree: Either[Throwable, Option[BinTreeNode[Int, String]]] = binTree2.flatMap(_.remove(key(1)))
+    val newBinTree: Either[Throwable, BinTreeNode[Int, String]] = binTree3.flatMap(_.remove(key(2)))
 
     Then("root node should be still present in BinTree")
     And("removed node should be replaced with None value")
     newBinTree match {
-      case Right(Some(node)) =>
+      case Right(node) =>
         node.get(key(0)).getOrElse("nothing") should equal(value(0))
-        node.get(key(1)) should equal(None)
-      case Right(None) => fail("Test has been failed due to removed root node element")
+        node.get(key(1)).getOrElse("nothing") should equal(value(1))
+        node.get(key(2)) should equal(None)
       case Left(ex) => fail("Test has been failed due to unexpected error: " + ex)
     }
   }
@@ -133,14 +134,32 @@ class BinTreeSpec extends AnyFlatSpec with Matchers with GivenWhenThen {
       val binTree: BinTreeNode[Int, String] = new BinTreeNode[Int, String](key, value)
 
       When("node with non-existing key is trying to be removed from BinTree")
-      val newBinTree: Either[Throwable, Option[BinTreeNode[Int, String]]] = binTree.remove(wrongKey)
+      val newBinTree: Either[Throwable, BinTreeNode[Int, String]] = binTree.remove(wrongKey)
 
       Then("""message of thrown exception should be "Element with key 6 is not found" """)
       newBinTree match {
         case Right(_) => fail("Test has been failed cause error with expected message was not thrown")
-        case Left(ex) => ex.getMessage should equal(s"Element with key $wrongKey is not found")
+        case Left(ex: NoSuchElementException) => ex.getMessage should equal(s"Element with key $wrongKey is not found")
+        case Left(ex) => fail("Test has been failed due to unexpected error: " + ex)
       }
     }
+
+  it should "return IllegalArgumentException exception after trying to remove root node" in {
+    Given("key, value and BinTree with one node")
+    val key: Int = 5
+    val value: String = "test"
+    val binTree: BinTreeNode[Int, String] = new BinTreeNode[Int, String](key, value)
+
+    When("node with non-existing key is trying to be removed from BinTree")
+    val newBinTree: Either[Throwable, BinTreeNode[Int, String]] = binTree.remove(key)
+
+    Then("""message of thrown exception should be "Impossible to remove root node with key 5" """)
+    newBinTree match {
+      case Right(_) => fail("Test has been failed cause error with expected message was not thrown")
+      case Left(ex: IllegalArgumentException) => ex.getMessage should equal(s"Impossible to remove root node with key $key")
+      case Left(ex) => fail("Test has been failed due to unexpected error: " + ex)
+    }
+  }
 
     "BinTree.getWithDefaultValue" should "return provided default value if nothing was found by provided key" in {
       Given("key, value and BinTree with one node")

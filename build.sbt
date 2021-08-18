@@ -8,3 +8,6 @@ libraryDependencies ++= Seq (
   "org.scalatest" %% "scalatest" % "3.1.1" % "test",
   "org.mockito" %% "mockito-scala" % "1.15.0" % "test"
 )
+
+libraryDependencies +=
+  "org.scala-lang.modules" %% "scala-parallel-collections" % "1.0.3"

@@ -1,10 +1,9 @@
 package collections.dataAnalysis
 
-import scala.collection.View
 import scala.io.Source
 import scala.util.{Try, Using}
 
-case class Loader() {
+object Loader {
 
   def getPeopleFromFile(fileName: String, numberOfRecords: Int): Try[Stream[Person]] = {
     Using(Source.fromResource(fileName)) {

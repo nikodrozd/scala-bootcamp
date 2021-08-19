@@ -8,7 +8,7 @@ object Main {
   val numberOfRecords: Int = 10000
 
   def main(args: Array[String]): Unit = {
-    Loader().getPeopleFromFile(fileName, numberOfRecords) match {
+    Loader.getPeopleFromFile(fileName, numberOfRecords) match {
       case Failure(ex) => throw ex
       case Success(people) =>
         val start: Long = System.currentTimeMillis()

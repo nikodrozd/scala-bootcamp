@@ -24,10 +24,7 @@ object Main extends App{
   }
 
   implicit class MonoidOps[T](val x: T) extends AnyVal {
-    def reduceCustom[T: Monoid](y: Iterable[T]): T = {
-      if (y.isEmpty) implicitly[Monoid[T]].empty
-      else y.reduce((a, b) => implicitly[Monoid[T]].add(a, b))
-    }
+    def reduceCustom[T: Monoid](y: Iterable[T]): T = y.foldLeft(implicitly[Monoid[T]].empty)((acc, a) => implicitly[Monoid[T]].add(acc, a))
   }
 
   println(Monoid.reduceCustom(Seq[Int]()))

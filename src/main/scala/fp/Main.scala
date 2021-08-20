@@ -24,10 +24,17 @@ object Main extends App{
   }
 
   implicit class MonoidOps[T](val x: T) extends AnyVal {
-    def reduceCustom[T: Monoid](y: Iterable[T]): T = y.reduce((a, b) => implicitly[Monoid[T]].add(a, b))
+    def reduceCustom[T: Monoid](y: Iterable[T]): T = {
+      if (y.isEmpty) implicitly[Monoid[T]].empty
+      else y.reduce((a, b) => implicitly[Monoid[T]].add(a, b))
+    }
   }
 
-  println(Monoid.reduceCustom(Seq(1, 2, 3)))
+  println(Monoid.reduceCustom(Seq[Int]()))
+
+  println(Monoid.reduceCustom(Seq[Int](1, 2, 3)))
+
+  println(Monoid.reduceCustom(List[String]()))
 
   println(Monoid.reduceCustom(List("1", "2", "3")))
 

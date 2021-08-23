@@ -4,6 +4,8 @@ import org.scalatest.GivenWhenThen
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
+import scala.util
+
 class BinTreeSpec extends AnyFlatSpec with Matchers with GivenWhenThen {
 
   "BinTreeNode" should "be able to be created as single node" in {
@@ -59,11 +61,12 @@ class BinTreeSpec extends AnyFlatSpec with Matchers with GivenWhenThen {
     When("node with duplicate key is trying to be added to BinTree")
     val newBinTree = binTree.add(key, newValue)
 
-    Then("""message of thrown exception should be "Element with key 5 is already exist" """)
-    newBinTree match {
-      case Right(_) => fail("Test has been failed cause error with expected message was not thrown")
-      case Left(ex) => ex.getMessage should equal(s"Element with key $key is already exist")
-    }
+    Then("type of returned Either value should be Left")
+    newBinTree shouldBe a [Left[_,_]]
+    And("type of returned exception should be IllegalArgumentException")
+    newBinTree.left.map(_ shouldBe a [IllegalArgumentException])
+    And("""message of thrown exception should be "Element with key 5 is already exist" """)
+    newBinTree.left.map(_.getMessage should equal (s"Element with key $key is already exist"))
   }
 
   "BinTreeNode.update" should "take provided pair of (key, value) and update value of node with this key" in {
@@ -97,11 +100,12 @@ class BinTreeSpec extends AnyFlatSpec with Matchers with GivenWhenThen {
     When("node with non-existing key is trying to be updated in BinTree")
     val newBinTree: Either[Throwable, BinTreeNode[Int, String]] = binTree.update(wrongKey, newValue)
 
-    Then("""message of thrown exception should be "Element with key 6 is not found" """)
-    newBinTree match {
-      case Right(_) => fail("Test has been failed cause error with expected message was not thrown")
-      case Left(ex) => ex.getMessage should equal(s"Element with key $wrongKey is not found")
-    }
+    Then("type of returned Either value should be Left")
+    newBinTree shouldBe a [Left[_,_]]
+    And("type of returned exception should be NoSuchElementException")
+    newBinTree.left.map(_ shouldBe a [NoSuchElementException])
+    And("""message of thrown exception should be "Element with key 6 is not found" """)
+    newBinTree.left.map(_.getMessage should equal (s"Element with key $wrongKey is not found"))
   }
 
   "BinTreeNode.remove" should "remove node with provided key from BinTree" in {
@@ -110,10 +114,13 @@ class BinTreeSpec extends AnyFlatSpec with Matchers with GivenWhenThen {
     val value: Array[String] = Array("test5", "test7", "test6")
     val binTree: BinTreeNode[Int, String] = new BinTreeNode[Int, String](key(0), value(0))
     val binTree2: Either[Throwable, BinTreeNode[Int, String]] = binTree.add(key(1), value(1))
-    val binTree3 = binTree2.flatMap(_.add(key(2), value(2)))
 
-    When("remove function is called for non-root node")
-    val newBinTree: Either[Throwable, BinTreeNode[Int, String]] = binTree3.flatMap(_.remove(key(2)))
+    When("new non-root node is added to BinTree and remove function is called for this node")
+    val newBinTree: Either[Throwable, BinTreeNode[Int, String]] = for {
+      bt <- binTree2
+      binTree3 <- bt.add(key(2), value(2))
+      newBT <- binTree3.remove(key(2))
+    } yield newBT
 
     Then("root node should be still present in BinTree")
     And("removed node should be replaced with None value")
@@ -136,12 +143,13 @@ class BinTreeSpec extends AnyFlatSpec with Matchers with GivenWhenThen {
       When("node with non-existing key is trying to be removed from BinTree")
       val newBinTree: Either[Throwable, BinTreeNode[Int, String]] = binTree.remove(wrongKey)
 
-      Then("""message of thrown exception should be "Element with key 6 is not found" """)
-      newBinTree match {
-        case Right(_) => fail("Test has been failed cause error with expected message was not thrown")
-        case Left(ex: NoSuchElementException) => ex.getMessage should equal(s"Element with key $wrongKey is not found")
-        case Left(ex) => fail("Test has been failed due to unexpected error: " + ex)
-      }
+      Then("type of returned Either value should be Left")
+      newBinTree shouldBe a [Left[_,_]]
+      And("type of returned exception should be NoSuchElementException")
+      newBinTree.left.map(_ shouldBe a [NoSuchElementException])
+      And("""message of thrown exception should be "Element with key 6 is not found" """)
+      newBinTree.left.map(_.getMessage should equal (s"Element with key $wrongKey is not found"))
+
     }
 
   it should "return IllegalArgumentException exception after trying to remove root node" in {
@@ -153,12 +161,12 @@ class BinTreeSpec extends AnyFlatSpec with Matchers with GivenWhenThen {
     When("node with non-existing key is trying to be removed from BinTree")
     val newBinTree: Either[Throwable, BinTreeNode[Int, String]] = binTree.remove(key)
 
-    Then("""message of thrown exception should be "Impossible to remove root node with key 5" """)
-    newBinTree match {
-      case Right(_) => fail("Test has been failed cause error with expected message was not thrown")
-      case Left(ex: IllegalArgumentException) => ex.getMessage should equal(s"Impossible to remove root node with key $key")
-      case Left(ex) => fail("Test has been failed due to unexpected error: " + ex)
-    }
+    Then("type of returned Either value should be Left")
+    newBinTree shouldBe a [Left[_,_]]
+    And("type of returned exception should be IllegalArgumentException")
+    newBinTree.left.map(_ shouldBe a [IllegalArgumentException])
+    And("""message of thrown exception should be "Impossible to remove root node with key 5" """)
+    newBinTree.left.map(_.getMessage should equal (s"Impossible to remove root node with key $key"))
   }
 
     "BinTree.getWithDefaultValue" should "return provided default value if nothing was found by provided key" in {

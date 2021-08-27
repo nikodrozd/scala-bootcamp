@@ -5,8 +5,8 @@ import java.util.Scanner
 
 object MainIO extends App {
 
-  class IO[A](value: => A) {
-    lazy val line: A = value
+  class IO[A](line: => A) {
+    def getLine: A = this.line
     def run(): Unit = this.line
   }
 
@@ -19,11 +19,11 @@ object MainIO extends App {
   }
 
   implicit object ioMonad extends Monad[IO] {
-    override def unit[A](a: A): IO[A] = new IO(a)
+    override def unit[A](a: A): IO[A] = IO(a)
 
-    override def flatMap[A, B](m: IO[A])(f: A => IO[B]): IO[B] = IO(f(m.line).line)
+    override def flatMap[A, B](m: IO[A])(f: A => IO[B]): IO[B] = IO(f(m.getLine).getLine)
 
-    override def map[A, B](m: IO[A])(f: A => B): IO[B] = IO(f(m.line))
+    override def map[A, B](m: IO[A])(f: A => B): IO[B] = IO(f(m.getLine))
   }
 
   val x: String = "test line"

@@ -1,13 +1,9 @@
 package collections.dataAnalysis
 
 import scala.collection.parallel.CollectionConverters._
+import collections.dataAnalysis.Monoid._
 
 object Reporter {
-
-  sealed trait Monoid[T] {
-    def empty: T
-    def add(x: T, y: T): T
-  }
 
   implicit object PersonMonoid extends Monoid[Person] {
     override def empty: Person = Person("monoidPerson")
@@ -19,16 +15,16 @@ object Reporter {
 
   private def avgTimeWorking(st: Stream[Person]): Double = {
     if (st.isEmpty) 0
-    else st.par.reduce((x, y) => PersonMonoid.add(x, y)).timeWorking.toDouble / st.length
+    else st.par.reduce(_ + _).timeWorking.toDouble / st.length
   }
 
   private def avgTimeOther(st: Stream[Person]): Double = {
     if (st.isEmpty) 0
-    else st.par.reduce((x, y) => PersonMonoid.add(x, y)).timeOther.toDouble / st.length
+    else st.par.reduce(_ + _).timeOther.toDouble / st.length
   }
 
   def primaryToOtherTimeCorrelation(people: Stream[Person]): String = {
-    val totalPerson = (PersonMonoid.empty #:: people).par.reduce((x, y) => PersonMonoid.add(x, y))
+    val totalPerson = (PersonMonoid.empty #:: people).par.reduce(_ + _)
     val primPercent = BigDecimal(100.0 * totalPerson.timePrimary.toDouble/ (totalPerson.timePrimary + totalPerson.timeWorking + totalPerson.timeOther)).setScale(2, BigDecimal.RoundingMode.HALF_UP)
     s"$primPercent% : ${100 - primPercent}%"
   }

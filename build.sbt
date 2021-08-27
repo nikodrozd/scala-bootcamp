@@ -9,3 +9,6 @@ libraryDependencies ++= Seq (
   "org.mockito" %% "mockito-scala" % "1.15.0" % "test",
   "org.scala-lang.modules" %% "scala-parallel-collections" % "1.0.3"
 )
+
+libraryDependencies +=
+  "org.scala-lang.modules" %% "scala-parallel-collections" % "1.0.3"

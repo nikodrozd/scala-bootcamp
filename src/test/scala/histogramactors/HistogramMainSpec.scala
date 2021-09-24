@@ -46,16 +46,16 @@ class HistogramMainSpec extends TestKit(ActorSystem("MySpec"))
 
   "Parser actor" should {
 
-    "return Map[String, Int] of words presented in input line" in {
-      Given("Parser actor and input line")
+    "return Map[String, Int] of words presented in input block" in {
+      Given("Parser actor and input block of lines")
       val parser = system.actorOf(Props[Parser]())
-      val inputLine = "test, test test2"
+      val inputBlock = Seq("test, test test2", "test3, test test2")
 
-      When("Parser receives Line message with input line")
-      parser ! Line(inputLine)
+      When("Parser receives Block message with input block of lines")
+      parser ! Block(inputBlock)
 
       Then("""it should return message Map("test" -> 2, "test2" -> 1) """)
-      expectMsg(Map("test" -> 2, "test2" -> 1))
+      expectMsg(Map("test" -> 3, "test2" -> 2, "test3" -> 1))
     }
 
   }

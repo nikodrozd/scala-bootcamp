@@ -24,7 +24,7 @@ case class DocumentToMap(dataFromFile: Seq[String])
 /**
  * ParserPool actor actions
  */
-case class Line(line: String)
+case class Block(block: Seq[String])
 
 /**
  * Reducer actor actions

@@ -24,11 +24,11 @@ object HistogramMain extends App {
 class Master(input: String, output: String, system: ActorSystem) extends Actor {
   private val poolSize = 10
 
-  val loader: ActorRef = system.actorOf(Props[Loader](), "loader")
-  val reducer: ActorRef = system.actorOf(Props[Reducer], "reducer")
-  val parserPool: ActorRef = system.actorOf(Props(classOf[ParserPool], poolSize), "parserPool")
-  val mapper: ActorRef = system.actorOf(Props(classOf[Mapper], parserPool, reducer), "mapper")
-  val saver: ActorRef = system.actorOf(Props[Saver](), "saver")
+  val loader: ActorRef = context.actorOf(Props[Loader](), "loader")
+  val reducer: ActorRef = context.actorOf(Props[Reducer], "reducer")
+  val parserPool: ActorRef = context.actorOf(Props(classOf[ParserPool], poolSize), "parserPool")
+  val mapper: ActorRef = context.actorOf(Props(classOf[Mapper], parserPool, reducer), "mapper")
+  val saver: ActorRef = context.actorOf(Props[Saver](), "saver")
   override def receive: Receive = {
     case Start =>
       loader ! Load(input)
@@ -49,9 +49,17 @@ class Master(input: String, output: String, system: ActorSystem) extends Actor {
 class Loader extends Actor {
   override def receive: Receive = {
     case Load(filePath) =>
-      loadData(filePath) match {
-        case Success(dataFromFile) => sender() ! LoadResult(dataFromFile)
-        case Failure(exception) => sender() ! FailResult(exception)
+      import scala.concurrent.ExecutionContext.Implicits.global
+
+      val master = sender()
+      Future{
+        loadData(filePath) match {
+          case Success(dataFromFile) => LoadResult(dataFromFile)
+          case Failure(exception) => FailResult(exception)
+        }
+      } onComplete {
+        case Success(value) => master ! value
+        case Failure(exception) => master ! FailResult(exception)
       }
   }
 
@@ -64,8 +72,8 @@ class Loader extends Actor {
 
 class Parser extends Actor {
   override def receive: Receive = {
-    case Line(line) =>
-      sender() ! line.split("[^\\d\\w]+").groupBy(_.toLowerCase).map{case (word, qty) => (word, qty.length)}
+    case Block(block) =>
+      sender() ! block.flatMap(_.split("[^\\d\\w]+")).groupBy(_.toLowerCase).map{case (word, qty) => (word, qty.length)}
   }
 }
 
@@ -77,10 +85,10 @@ class ParserPool(size: Int) extends Actor {
   private var nextParserIndex = 0
 
   override def receive: Receive = {
-    case Line(line) =>
+    case Block(block) =>
       if (nextParserIndex < size) {
         val s = sender()
-        (context.children.toIndexedSeq(nextParserIndex) ? Line(line)).pipeTo(s)
+        (context.children.toIndexedSeq(nextParserIndex) ? Block(block)).pipeTo(s)
         nextParserIndex += 1
       } else nextParserIndex = 0
   }
@@ -93,8 +101,9 @@ class Mapper(parserPool: ActorRef, reducer: ActorRef) extends Actor {
   override def receive: Receive = {
     case DocumentToMap(lines) =>
       val s = sender()
-      val res: Seq[Future[Map[String, Int]]] = lines.map(line => parserPool.ask(Line(line)).asInstanceOf[Future[Map[String, Int]]])
-      res.foreach(fut => Await.ready(fut, Duration(1100, MILLISECONDS)).map(line => reducer ! AddToResult(line)))
+      val blockSize = (lines.size / 10) + 1
+      val res: Iterator[Future[Map[String, Int]]] = lines.grouped(blockSize).map(block => parserPool.ask(Block(block)).asInstanceOf[Future[Map[String, Int]]])
+      res.foreach(fut => Await.ready(fut, Duration(1100, MILLISECONDS)).map(resMap => reducer ! AddToResult(resMap)))
       s ! MappingFinished
   }
 }
